@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>PhrasePlayer</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* petites touches pour la bibliothèque en cartes */
+    #library { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:12px; }
+    .cardTile { border:1px solid #e6e8ef; background:#fff; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px; }
+    .tileTitle { font-weight:600; }
+    .tileRow { display:flex; gap:6px; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PhrasePlayer</h1>
+    <button id="installBtn" hidden>Install</button>
+  </header>
+
+  <main>
+    <aside id="sidebar">
+      <div class="block">
+        <h2>Speeches</h2>
+        <ul id="speechList"></ul>
+        <button id="newSpeechBtn">+ New Speech</button>
+      </div>
+
+      <div class="block">
+        <h3>Export / Import</h3>
+        <button id="exportBtn">Export current JSON</button>
+        <label class="filelike">
+          Import JSON
+          <input type="file" id="importJson" accept="application/json" hidden>
+        </label>
+      </div>
+    </aside>
+
+    <section id="content">
+      <!-- Vue Bibliothèque (accueil) -->
+      <div id="libraryView" class="card">
+        <div class="row" style="justify-content:space-between; align-items:center;">
+          <h2 style="margin:0;">Ma bibliothèque</h2>
+          <button id="libNewBtn">+ New Speech</button>
+        </div>
+        <div id="library"></div>
+        <div id="libEmpty" class="hint" style="margin-top:10px;">Aucun speech pour l’instant. Créez-en un avec “+ New Speech”.</div>
+      </div>
+
+      <!-- Vue Lecteur/Éditeur -->
+      <div id="editor" class="card hidden">
+        <div class="row" style="justify-content:space-between; align-items:center;">
+          <h2 id="speechTitle"></h2>
+          <div class="row">
+            <button id="backToLibBtn">← Bibliothèque</button>
+            <button id="renameBtnTop">Renommer</button>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <label class="filelike">
+              Select audio
+              <input type="file" id="audioInput" accept="audio/*" hidden />
+            </label>
+            <p class="hint">Tip: .mp3 / .m4a fonctionnent bien.</p>
+
+            <label>Transcript (une phrase par ligne):</label>
+            <textarea id="transcript" rows="10" placeholder="Collez votre transcript ici, une phrase par ligne…"></textarea>
+            <div class="row">
+              <button id="saveTranscriptBtn">Save Transcript</button>
+              <button id="autoSplitBtn" title="Découper automatiquement en phrases">Auto-split</button>
+              <button id="clearTimesBtn" title="Effacer tous les timestamps">Clear times</button>
+            </div>
+          </div>
+
+          <div>
+            <h3>Player</h3>
+            <audio id="audio" controls preload="metadata"></audio>
+
+            <!-- Contrôles de révision (inchangés) -->
+            <div class="row">
+              <button id="prevBtn">« Prev</button>
+              <button id="playPauseBtn">Play</button>
+              <button id="nextBtn">Next »</button>
+            </div>
+
+            <div class="row">
+              <label>Repeat current
+                <input type="number" id="repeatCount" min="1" value="1" style="width:60px;">
+                times
+              </label>
+              <label><input type="checkbox" id="autoAdvance" checked> Auto-advance</label>
+              <label><input type="checkbox" id="loopSentence"> Loop forever</label>
+            </div>
+
+            <!-- Mode de synchro Next-only -->
+            <div class="row">
+              <button id="syncStartBtn">Start Synchronization</button>
+              <button id="syncNextBtn" class="hidden">Next</button>
+              <button id="syncUndoBtn" class="hidden">Undo</button>
+              <button id="syncFinishBtn" class="hidden">Finish</button>
+            </div>
+
+            <!-- Marquage manuel (toujours utile pour corriger) -->
+            <div class="row">
+              <button id="markStartBtn">Mark Start</button>
+              <button id="markEndBtn">Mark End</button>
+              <button id="jumpStartBtn">↦ Start</button>
+              <button id="jumpEndBtn">↦ End</button>
+            </div>
+          </div>
+        </div>
+
+        <h3>Sentences</h3>
+        <ol id="sentenceList"></ol>
+      </div>
+    </section>
+  </main>
+
+  <template id="speechItemTpl">
+    <li class="speechItem">
+      <button class="loadBtn"></button>
+      <button class="renameBtn" title="Renommer">✎</button>
+      <button class="deleteBtn" title="Supprimer">🗑</button>
+    </li>
+  </template>
+
+  <!-- Tuile pour la bibliothèque -->
+  <template id="tileTpl">
+    <div class="cardTile">
+      <div class="tileTitle"></div>
+      <div class="hint"></div>
+      <div class="tileRow">
+        <button class="openTile">Ouvrir</button>
+        <button class="renameTile">Renommer</button>
+        <button class="deleteTile">Supprimer</button>
+      </div>
+    </div>
+  </template>
+
+  <template id="sentenceItemTpl">
+    <li class="sentenceItem">
+      <div class="row">
+        <span class="index"></span>
+        <button class="goBtn" title="Play this sentence">▶</button>
+        <button class="repeatBtn" title="Repeat this sentence">⟲</button>
+        <span class="times">[–, –]</span>
+      </div>
+      <div class="text"></div>
+    </li>
+  </template>
+
+  <script src="pwa.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
