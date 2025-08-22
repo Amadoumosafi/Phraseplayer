@@ -604,3 +604,12 @@ syncFinishBtn.onclick = async () => {
   await refreshList();
   showLibrary(); // commence par la bibliothèque
 })();
+// --- Safari iOS Fix ---
+// Si Safari met l'audio en pause tout seul pendant la synchro, on relance la lecture
+audioEl.addEventListener("pause", () => {
+    if (isSynchronizing) {
+        audioEl.play().catch(err => console.log("Safari bloque encore:", err));
+    }
+});
+
+
